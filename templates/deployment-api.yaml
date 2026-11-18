@@ -1,0 +1,97 @@
+{{- $createSecret := and .Values.api.security.enabled (not .Values.api.security.existingSecret) }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "allure.apiName" . }}
+  labels:
+    {{- include "allure.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+spec:
+  # Allure keeps its state on one volume, so it runs as a single replica that is replaced, not rolled.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "allure.selectorLabels" (dict "root" . "component" "api") | nindent 6 }}
+  template:
+    metadata:
+      {{- $annotations := dict }}
+      {{- if $createSecret }}
+      {{- $_ := set $annotations "checksum/secret" (include (print $.Template.BasePath "/secret.yaml") . | sha256sum) }}
+      {{- end }}
+      {{- $annotations = merge $annotations .Values.podAnnotations }}
+      {{- with $annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "allure.selectorLabels" (dict "root" . "component" "api") | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- include "allure.podSpec" . | nindent 6 }}
+      containers:
+        - name: api
+          image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}"
+          imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 5050
+              protocol: TCP
+          env:
+            - name: CHECK_RESULTS_EVERY_SECONDS
+              value: {{ .Values.api.checkResultsEverySeconds | quote }}
+            - name: KEEP_HISTORY
+              value: {{ ternary "1" "0" .Values.api.keepHistory | quote }}
+            - name: TLS
+              value: {{ ternary "1" "0" .Values.api.tls | quote }}
+            - name: SECURITY_ENABLED
+              value: {{ ternary "1" "0" .Values.api.security.enabled | quote }}
+            - name: MAKE_VIEWER_ENDPOINTS_PUBLIC
+              value: {{ ternary "1" "0" .Values.api.security.makeViewerEndpointsPublic | quote }}
+            {{- with .Values.api.urlPrefix }}
+            - name: URL_PREFIX
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.api.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- if .Values.api.security.enabled }}
+          envFrom:
+            - secretRef:
+                name: {{ include "allure.secretName" . }}
+          {{- end }}
+          startupProbe:
+            httpGet:
+              path: {{ include "allure.versionPath" . }}
+              port: http
+            periodSeconds: 10
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: {{ include "allure.versionPath" . }}
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: {{ include "allure.versionPath" . }}
+              port: http
+            periodSeconds: 20
+            failureThreshold: 6
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.api.resources | nindent 12 }}
+          volumeMounts:
+            - name: projects
+              mountPath: /app/projects
+      volumes:
+        - name: projects
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "allure.claimName" . }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}

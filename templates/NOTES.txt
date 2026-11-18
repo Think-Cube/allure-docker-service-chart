@@ -1,0 +1,23 @@
+Allure Docker Service {{ .Chart.AppVersion }} is installed as release {{ .Release.Name }} in namespace {{ .Release.Namespace }}.
+
+{{- if .Values.ingress.enabled }}
+
+API: {{ ternary "https" "http" (not (empty .Values.ingress.tls)) }}://{{ .Values.ingress.api.host }}{{ .Values.api.urlPrefix }}/allure-docker-service
+{{- if .Values.ui.enabled }}
+UI:  {{ ternary "https" "http" (not (empty .Values.ingress.tls)) }}://{{ .Values.ingress.ui.host }}{{ .Values.ui.urlPrefix }}
+{{- end }}
+{{- else }}
+
+Reach the API from your machine:
+
+  kubectl --namespace {{ .Release.Namespace }} port-forward service/{{ include "allure.apiName" . }} 5050:{{ .Values.service.apiPort }}
+  open http://localhost:5050{{ .Values.api.urlPrefix }}/allure-docker-service
+{{- end }}
+{{- if .Values.api.security.enabled }}
+
+Log in with the admin user from Secret {{ include "allure.secretName" . }}.
+{{- end }}
+{{- if not .Values.persistence.enabled }}
+
+WARNING: persistence is disabled, so reports are lost whenever the pod is replaced.
+{{- end }}
