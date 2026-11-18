@@ -1,0 +1,24 @@
+# UI, ingress with TLS, URL prefixes, a viewer user and no persistence.
+api:
+  urlPrefix: /allure-api
+  tls: true
+  security:
+    adminUser: ci-admin
+    adminPassword: ci-admin-password
+    viewerUser: ci-viewer
+    viewerPassword: ci-viewer-password
+ui:
+  enabled: true
+  urlPrefix: /allure-ui
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 500m
+  tls:
+    - secretName: allure-tls
+      hosts:
+        - allure-api.example.com
+        - allure.example.com
+persistence:
+  enabled: false

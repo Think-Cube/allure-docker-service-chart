@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ printf "%s-test-api" (include "allure.fullname" . | trunc 54 | trimSuffix "-") }}
+  labels:
+    {{- include "allure.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+  annotations:
+    helm.sh/hook: test
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  restartPolicy: Never
+  automountServiceAccountToken: false
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 100
+    runAsGroup: 101
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: version
+      image: "{{ .Values.test.image.repository }}:{{ .Values.test.image.tag }}"
+      args:
+        - --fail
+        - --silent
+        - --show-error
+        - --retry
+        - "10"
+        - --retry-all-errors
+        - --retry-delay
+        - "3"
+        - {{ printf "http://%s:%v%s" (include "allure.apiName" .) .Values.service.apiPort (include "allure.versionPath" .) | quote }}
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop:
+            - ALL

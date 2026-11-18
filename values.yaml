@@ -1,0 +1,152 @@
+# -- Override the chart name used in resource names
+nameOverride: ""
+# -- Override the full resource name prefix
+fullnameOverride: ""
+
+api:
+  image:
+    # -- Allure Docker Service image
+    repository: frankescobar/allure-docker-service
+    # -- Image tag
+    tag: "2.44.0"
+    # -- Image pull policy
+    pullPolicy: IfNotPresent
+  # -- Path prefix the API is served under, for example `/allure-api`. Leave empty to serve at `/`.
+  urlPrefix: ""
+  # -- Seconds between checks for new results, or `NONE` to generate reports only on request
+  checkResultsEverySeconds: "NONE"
+  # -- Keep the history of previous reports
+  keepHistory: true
+  # -- Set when clients reach the API over HTTPS, for example through a TLS-terminating ingress
+  tls: false
+  security:
+    # -- Require a login for the API
+    enabled: true
+    # -- Let anyone read reports without logging in
+    makeViewerEndpointsPublic: false
+    # -- Existing Secret with the keys `SECURITY_USER`, `SECURITY_PASS` and optionally `SECURITY_VIEWER_USER`, `SECURITY_VIEWER_PASS`. When empty, the chart creates one from the values below.
+    existingSecret: ""
+    # -- Admin user. Required when security is enabled and no existing Secret is set.
+    adminUser: ""
+    # -- Admin password. Required when security is enabled and no existing Secret is set.
+    adminPassword: ""
+    # -- Read-only user. Optional.
+    viewerUser: ""
+    # -- Password of the read-only user. Required when `viewerUser` is set.
+    viewerPassword: ""
+  # -- Extra environment variables for the API container
+  extraEnv: []
+  # -- Resources of the API container. Report generation runs Java and needs memory.
+  resources:
+    requests:
+      cpu: 250m
+      memory: 1Gi
+    limits:
+      memory: 2Gi
+
+ui:
+  # -- Deploy the separate Allure UI. Upstream has not updated it since January 2021, so it is off by default; the API serves reports on its own.
+  enabled: false
+  image:
+    # -- Allure UI image
+    repository: frankescobar/allure-docker-service-ui
+    # -- Image tag
+    tag: "7.0.3"
+    # -- Image pull policy
+    pullPolicy: IfNotPresent
+  # -- Path prefix the UI is served under, for example `/allure-ui`. Leave empty to serve at `/`.
+  urlPrefix: ""
+  # -- URL browsers use to reach the API. Defaults to the API ingress host and prefix; required when the ingress is disabled.
+  publicApiUrl: ""
+  # -- Resources of the UI container
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+service:
+  # -- Service type of both services
+  type: ClusterIP
+  # -- Service port of the API
+  apiPort: 5050
+  # -- Service port of the UI
+  uiPort: 5252
+
+ingress:
+  # -- Create an Ingress for the API, and for the UI when it is enabled
+  enabled: false
+  # -- Ingress class, for example `nginx`
+  className: ""
+  # -- Ingress annotations. With ingress-nginx, raise `nginx.ingress.kubernetes.io/proxy-body-size` to upload large results.
+  annotations: {}
+  api:
+    # -- Host of the API
+    host: allure-api.example.com
+  ui:
+    # -- Host of the UI
+    host: allure.example.com
+  # -- TLS settings, for example `[{secretName: allure-tls, hosts: [allure-api.example.com]}]`
+  tls: []
+
+persistence:
+  # -- Store reports in a PersistentVolumeClaim. When disabled, reports are lost with the pod.
+  enabled: true
+  # -- Use an existing PersistentVolumeClaim instead of creating one
+  existingClaim: ""
+  # -- Storage class. Empty uses the cluster default; `-` disables dynamic provisioning.
+  storageClass: ""
+  # -- Access modes of the claim
+  accessModes:
+    - ReadWriteOnce
+  # -- Size of the claim
+  size: 5Gi
+  # -- Keep the claim, and the reports in it, when the release is uninstalled
+  keepOnUninstall: true
+
+serviceAccount:
+  # -- Create a ServiceAccount
+  create: true
+  # -- Name of the ServiceAccount. Generated from the release name when empty.
+  name: ""
+  # -- Annotations of the ServiceAccount
+  annotations: {}
+
+# -- Secrets for pulling images from private registries
+imagePullSecrets: []
+
+# -- Annotations added to the pods
+podAnnotations: {}
+# -- Labels added to the pods
+podLabels: {}
+
+# -- Pod security context. Both images run as UID 1000.
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+# -- Container security context
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+# -- Node selector for the pods
+nodeSelector: {}
+# -- Tolerations for the pods
+tolerations: []
+# -- Affinity for the pods
+affinity: {}
+
+test:
+  image:
+    # -- Image used by `helm test`
+    repository: curlimages/curl
+    # -- Image tag, pinned by digest
+    tag: "8.23.0@sha256:3fb7e13e5d179a845c97d78204f3f1064d1907037f26a3ebf91710571151fd93"

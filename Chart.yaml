@@ -1,0 +1,29 @@
+apiVersion: v2
+name: allure-docker-service
+description: Allure Docker Service on Kubernetes, with optional Allure UI, ingress and persistent report storage
+type: application
+version: 1.0.0
+appVersion: "2.44.0"
+kubeVersion: ">=1.28.0-0"
+home: https://github.com/Think-Cube/allure-docker-service-chart
+icon: https://avatars.githubusercontent.com/u/5879127?s=200&v=4
+sources:
+  - https://github.com/Think-Cube/allure-docker-service-chart
+  - https://github.com/fescobar/allure-docker-service
+keywords:
+  - allure
+  - testing
+  - test-reports
+maintainers:
+  - name: Think-Cube
+    email: contact@thinkcube.dev
+    url: https://github.com/Think-Cube
+annotations:
+  artifacthub.io/license: MIT
+  artifacthub.io/images: |
+    - name: allure-docker-service
+      image: frankescobar/allure-docker-service:2.44.0
+    - name: allure-docker-service-ui
+      image: frankescobar/allure-docker-service-ui:7.0.3
+    - name: curl
+      image: curlimages/curl:8.23.0

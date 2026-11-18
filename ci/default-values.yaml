@@ -1,0 +1,5 @@
+# API only, with security and a persistent volume: the default setup.
+api:
+  security:
+    adminUser: ci-admin
+    adminPassword: ci-admin-password
