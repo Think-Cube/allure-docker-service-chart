@@ -1,6 +1,6 @@
 # Artifact Hub metadata for the OCI repository ghcr.io/think-cube/charts/allure-docker-service.
-# After adding that repository on Artifact Hub, put the repository ID it shows here:
-# repositoryID: <id>
+# https://artifacthub.io/docs/topics/repositories/helm-charts/
+repositoryID: 094890f7-786b-41fb-8a20-7f7696fc12db
 owners:
   - name: think-cube
     email: contact@thinkcube.dev

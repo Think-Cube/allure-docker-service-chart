@@ -3,6 +3,7 @@
 [![Chart](https://github.com/Think-Cube/allure-docker-service-chart/actions/workflows/chart.yml/badge.svg)](https://github.com/Think-Cube/allure-docker-service-chart/actions/workflows/chart.yml)
 [![Release](https://img.shields.io/github/v/release/Think-Cube/allure-docker-service-chart)](https://github.com/Think-Cube/allure-docker-service-chart/releases)
 [![License](https://img.shields.io/github/license/Think-Cube/allure-docker-service-chart)](LICENSE)
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/allure-docker-service-chart)](https://artifacthub.io/packages/search?repo=allure-docker-service-chart)
 
 Helm chart for [Allure Docker Service](https://github.com/fescobar/allure-docker-service) on Kubernetes, with an optional Allure UI, ingress and persistent report storage.
 
@@ -12,11 +13,12 @@ The chart is published to GitHub Container Registry as an OCI artifact and signe
 
 ```bash
 helm install allure oci://ghcr.io/think-cube/charts/allure-docker-service \
-  --version 1.0.0 \
   --namespace allure --create-namespace \
   --set api.security.adminUser=admin \
   --set api.security.adminPassword='change-me'
 ```
+
+This installs the newest version. In production, pin one from [Releases](https://github.com/Think-Cube/allure-docker-service-chart/releases) with `--version`.
 
 Security is on by default, so the install fails until you set an admin user and password, or point `api.security.existingSecret` to a Secret you manage. That Secret needs the keys `SECURITY_USER` and `SECURITY_PASS`, and optionally `SECURITY_VIEWER_USER` and `SECURITY_VIEWER_PASS`.
 
@@ -97,7 +99,7 @@ Reports are stored in a PersistentVolumeClaim of the cluster's default storage c
 ## Verify the chart
 
 ```bash
-cosign verify ghcr.io/think-cube/charts/allure-docker-service:1.0.0 \
+cosign verify ghcr.io/think-cube/charts/allure-docker-service:<version> \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   --certificate-identity-regexp '^https://github\.com/Think-Cube/workflows/\.github/workflows/helm-chart\.yml@refs/tags/v.+$'
 ```
