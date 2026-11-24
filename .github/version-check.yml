@@ -1,0 +1,24 @@
+# Versions Dependabot does not track; checked weekly by .github/workflows/version-check.yml.
+checks:
+  - name: Allure Docker Service
+    file: values.yaml
+    path: .api.image.tag
+    source: docker-hub
+    repository: frankescobar/allure-docker-service
+    tag-pattern: '(\d+\.\d+\.\d+)'
+    note: Also update appVersion and the artifacthub.io/images annotation in Chart.yaml, and bump the chart version.
+  - name: Allure Docker Service UI
+    file: values.yaml
+    path: .ui.image.tag
+    source: docker-hub
+    repository: frankescobar/allure-docker-service-ui
+    tag-pattern: '(\d+\.\d+\.\d+)'
+    note: Also update the artifacthub.io/images annotation in Chart.yaml, and bump the chart version.
+  - name: curl used by helm test
+    file: values.yaml
+    path: .test.image.tag
+    pattern: '^([^@]+)'
+    source: docker-hub
+    repository: curlimages/curl
+    tag-pattern: '(\d+\.\d+\.\d+)'
+    note: Update the tag together with its digest, and the artifacthub.io/images annotation in Chart.yaml.
